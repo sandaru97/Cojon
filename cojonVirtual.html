@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Virtual Cojon</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"> <!-- Font Awesome CSS -->
+  <style>
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background-color: #f3f3f3;
+    }
+    header {
+      background-color: #c2a476;
+      color: #483c32;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px;
+    }
+    h1 {
+      margin: 0;
+    }
+    .settings-button {
+      background: none;
+      border: none;
+      color: #483c32;
+      cursor: pointer;
+      font-size: 20px;
+    }
+    .settings-button:hover {
+      color: #ffd700;
+    }
+    .drum-pad-container {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, 150px); /* Increased row height */
+      gap: 10px;
+      justify-content: center;
+      padding: 20px;
+    }
+    .drum-pad {
+      width: 100%;
+      height: 100%;
+      background-color: #c2a476;
+      border-radius: 10px;
+      display: flex;
+      flex-direction: column; /* Display text under icon */
+      justify-content: center;
+      align-items: center;
+      font-size: 24px;
+      color: #483c32;
+      cursor: pointer;
+      box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.3);
+      transition: box-shadow 0.3s ease; /* Smooth transition for glow effect */
+    }
+    .drum-pad.clicked,
+    .drum-pad.pressed {
+      box-shadow: 0 0 10px 5px #ffd700; /* Glow effect color */
+    }
+    footer {
+      text-align: center;
+      background-color: #c2a476;
+      color: #483c32;
+      padding: 10px 0;
+      position: fixed;
+      width: 100%;
+      bottom: 0;
+    }
+    .settings-popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background-color: #fff;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
+      z-index: 9999;
+      display: none;
+    }
+    .settings-popup.show {
+      display: block;
+    }
+    .slider-container {
+      margin-bottom: 20px;
+    }
+    .slider-label {
+      font-weight: bold;
+    }
+    .slider {
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Virtual Cojon</h1>
+    <button class="settings-button" onclick="toggleSettingsPopup()"><i class="fas fa-cog"></i></button>
+  </header>
+  <div class="settings-popup" id="settingsPopup">
+    <div class="slider-container">
+      <label for="volumeSlider" class="slider-label">Volume:</label>
+      <input type="range" min="0" max="100" value="100" class="slider" id="volumeSlider">
+    </div>
+    <div class="slider-container">
+      <label for="reverbSlider" class="slider-label">Reverb:</label>
+      <input type="range" min="0" max="100" value="0" class="slider" id="reverbSlider">
+    </div>
+  </div>
+  <div class="drum-pad-container">
+    <div class="drum-pad" data-key="1" onclick="playSound('kick.wav'), handlePadClick(event)"><i class="fas fa-drum"></i> Kick</div>
+    <div class="drum-pad" data-key="2" onclick="playSound('kick.wav'), handlePadClick(event)"><i class="fas fa-drum"></i> Kick</div>
+    <div class="drum-pad" data-key="q" onclick="playSound('snare.wav'), handlePadClick(event)"><i class="fas fa-hand-paper"></i> Snare</div>
+    <div class="drum-pad" data-key="w" onclick="playSound('snare.wav'), handlePadClick(event)"><i class="fas fa-hand-paper"></i> Snare</div>
+    <div class="drum-pad" data-key="a" onclick="playSound('snare0.wav'), handlePadClick(event)"><i class="fas fa-hand-rock"></i> Snare0</div>
+    <div class="drum-pad" data-key="s" onclick="playSound('snare0.wav'), handlePadClick(event)"><i class="fas fa-hand-rock"></i> Snare0</div>
+  </div>
+
+  <footer>
+    <p>&copy; 2024 S.A.M</p>
+  </footer>
+
+  <script>
+    // Preload audio files
+    const audioFiles = ['kick.wav', 'snare.wav', 'snare0.wav'];
+    const audioElements = {};
+    audioFiles.forEach(function(file) {
+      audioElements[file] = new Audio(file);
+      audioElements[file].preload = 'auto';
+    });
+
+    // Function to play drum sound
+    function playSound(soundFile) {
+      const volume = document.getElementById('volumeSlider').value / 100;
+      const reverb = document.getElementById('reverbSlider').value / 100;
+
+      const audio = audioElements[soundFile];
+      audio.currentTime = 0;
+      audio.volume = volume;
+      audio.play();
+    }
+
+    // Function to handle the glow effect when drum pad is clicked
+    function handlePadClick(event) {
+      const pad = event.target;
+      pad.classList.add('clicked');
+      setTimeout(() => {
+        pad.classList.remove('clicked');
+      }, 300); // Remove the glow effect after 300 milliseconds
+    }
+
+    // Function to toggle settings popup visibility
+    function toggleSettingsPopup() {
+      const popup = document.getElementById('settingsPopup');
+      popup.classList.toggle('show');
+    }
+
+    // Event listener for key press
+    document.addEventListener('keypress', function(event) {
+      let soundFile;
+      switch(event.key.toLowerCase()) {
+        case '1':
+        case '2':
+          soundFile = 'kick.wav';
+          break;
+        case 'q':
+        case 'w':
+          soundFile = 'snare.wav';
+          break;
+        case 'a':
+        case 's':
+          soundFile = 'snare0.wav';
+          break;
+        default:
+          return; // If the pressed key doesn't match any expected keys, exit the function
+      }
+      
+      playSound(soundFile); // Play the corresponding sound
+      const pad = document.querySelector(`.drum-pad[data-key="${event.key.toLowerCase()}"]`);
+      if (pad) {
+        pad.classList.add('pressed');
+        setTimeout(() => {
+          pad.classList.remove('pressed');
+        }, 300); // Remove the glow effect after 300 milliseconds
+      }
+    });
+  </script>
+</body>
+</html>
