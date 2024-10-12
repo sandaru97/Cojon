@@ -69,7 +69,7 @@
       flex-direction: column;
       justify-content: center;
       align-items: center;
-      font-size: 18px;
+      font-size: 24px;
       color: #483c32;
       cursor: pointer;
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
@@ -77,6 +77,9 @@
       padding: 10px;
       text-align: center;
       border: 2px solid #483c32;
+    }
+    .drum-pad i {
+      font-size: 4rem; /* Increased icon size */
     }
     .drum-pad.clicked {
       background-color: #ffd700;
@@ -90,10 +93,7 @@
     .big-kick {
       grid-column: span 2;
     }
-    .drum-pad i {
-      font-size: 3rem;
-    }
-    .settings-popup, .metronome-popup {
+    .settings-popup {
       position: fixed;
       top: 50%;
       left: 50%;
@@ -107,16 +107,16 @@
       max-width: 360px;
       display: none;
     }
-    .settings-popup.show, .metronome-popup.show {
+    .settings-popup.show {
       display: block;
     }
-    .slider-container, .metronome-slider-container {
+    .slider-container {
       margin-bottom: 20px;
       background-color: #d8c18c;
       border-radius: 5px;
       padding: 10px;
     }
-    .slider-label, .metronome-slider-label {
+    .slider-label {
       font-weight: bold;
       color: #483c32;
     }
@@ -136,6 +136,11 @@
       cursor: pointer;
       -webkit-appearance: none;
       appearance: none;
+    }
+    .slider-container:last-child {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
     }
     .slider::-moz-range-thumb {
       width: 20px;
@@ -166,6 +171,33 @@
     .close-button:hover {
       color: #ffd700;
     }
+    .metronome-toggle-button {
+      background-color: #c2a476;
+      border-radius: 10px;
+      color: #483c32;
+      cursor: pointer;
+      font-size: 1.5rem;
+      padding: 10px;
+      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s, color 0.3s, transform 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .metronome-toggle-button:hover {
+      background-color: #ffd700;
+      color: #483c32;
+      transform: translateY(-2px);
+    }
+    .metronome-toggle-button:active {
+      transform: translateY(1px);
+    }
+    .section-title {
+      font-size: 1.5rem;
+      font-weight: bold;
+      color: #483c32;
+      margin-bottom: 10px;
+    }
   </style>
 </head>
 <body>
@@ -179,94 +211,79 @@
   </div>
 
   <div class="top-bar">
-    <button class="settings-button" onclick="toggleSettingsPopup()"><i class="fas fa-cog"></i></button>
-    <button class="open-file-button" onclick="openFile()"><i class="fas fa-folder-open"></i></button>
     <button class="record-button" onclick="startRecording()"><i class="fas fa-record-vinyl"></i></button>
     <button class="stop-button" onclick="stopRecording()"><i class="fas fa-stop"></i></button>
-    <button class="metronome-button" onclick="toggleMetronomePopup()">
-      <i class="fas fa-music"></i>
-    </button>  
+    <button class="open-file-button" onclick="openFile()"><i class="fas fa-folder-open"></i></button>
+    <button class="settings-button" onclick="toggleSettingsPopup()"><i class="fas fa-cog"></i></button>
   </div>
 
   <div class="settings-popup" id="settingsPopup">
     <div class="close-button-container">
-      <button class="close-button" onclick="toggleSettingsPopup()"><i class="fas fa-times"></i></button>
+      <button class="close-button" onclick="toggleSettingsPopup()">X</button>
     </div>
-    <div class="slider-container">
-      <label for="volumeSlider" class="slider-label">Volume:</label>
-      <input type="range" min="0" max="100" value="100" class="slider" id="volumeSlider" oninput="updateVolume()">
-      <span id="volumeValue">100</span>
-    </div>
-    <div class="slider-container">
-      <label for="reverbSlider" class="slider-label">Reverb:</label>
-      <input type="range" min="0" max="100" value="0" class="slider" id="reverbSlider" oninput="updateReverb()">
-      <span id="reverbValue">0</span>
-    </div>
-  </div>
 
-  <div class="metronome-popup" id="metronomePopup">
-    <div class="close-button-container">
-      <button class="close-button" onclick="toggleMetronomePopup()"><i class="fas fa-times"></i></button>
+    <div class="slider-container">
+      <div class="section-title">Volume</div>
+      <input type="range" id="volumeSlider" class="slider" min="0" max="100" value="50">
     </div>
-    <div class="metronome-slider-container">
-      <label for="bpmSlider" class="metronome-slider-label">BPM:</label>
-      <input type="range" min="60" max="200" value="120" class="slider" id="bpmSlider">
-      <span id="bpmValue">120</span>
+
+    <div class="slider-container">
+      <div class="section-title">Reverb</div>
+      <input type="range" id="reverbSlider" class="slider" min="0" max="100" value="30">
+    </div>
+
+    <div class="slider-container">
+      <div class="section-title">Metronome</div>
+      <input type="range" id="bpmSlider" class="slider" min="40" max="200" value="120">
+      <button class="metronome-toggle-button" onclick="toggleMetronome()">Off</button>
     </div>
   </div>
 
   <script>
-    let audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    let gainNode = audioContext.createGain();
-    gainNode.gain.value = 1; // Default volume
-    gainNode.connect(audioContext.destination);
+    let metronomeEnabled = false;
 
-    function playSound(sound) {
-      const audio = new Audio(sound);
-      audio.volume = gainNode.gain.value; // Set initial volume
-      audio.play();
-
-      // Simple reverb simulation using gain node
-      const reverbGain = audioContext.createGain();
-      reverbGain.gain.value = document.getElementById('reverbSlider').value / 100; // Scale reverb
-      reverbGain.connect(audioContext.destination);
-      audio.addEventListener('ended', () => {
-        reverbGain.disconnect();
-      });
-      reverbGain.connect(audio);
+    function toggleSettingsPopup() {
+      const popup = document.getElementById('settingsPopup');
+      popup.classList.toggle('show');
     }
 
-    function updateVolume() {
-      const volumeSlider = document.getElementById('volumeSlider');
-      gainNode.gain.value = volumeSlider.value / 100; // Scale volume
-      document.getElementById('volumeValue').textContent = volumeSlider.value;
+    function toggleMetronome() {
+      const toggleButton = document.querySelector('.metronome-toggle-button');
+      metronomeEnabled = !metronomeEnabled;
+      toggleButton.textContent = metronomeEnabled ? 'On' : 'Off';
+      toggleButton.classList.toggle('on', metronomeEnabled);
+      
+      if (metronomeEnabled) {
+        startMetronome();
+      } else {
+        clearInterval(metronomeInterval);
+      }
+    }
+    
+    // Placeholder for start/stop metronome
+    function startMetronome() {
+      console.log('Metronome started');
+    }
+    
+    // Placeholder for recording functions
+    function startRecording() {
+      console.log('Recording started');
     }
 
-    function updateReverb() {
-      const reverbSlider = document.getElementById('reverbSlider');
-      document.getElementById('reverbValue').textContent = reverbSlider.value;
+    function stopRecording() {
+      console.log('Recording stopped');
     }
 
     function handlePadClick(event) {
-      const pad = event.target.closest('.drum-pad');
+      const pad = event.currentTarget;
       pad.classList.add('clicked');
-      setTimeout(() => pad.classList.remove('clicked'), 200);
+      setTimeout(() => {
+        pad.classList.remove('clicked');
+      }, 150);
     }
-
-    document.addEventListener('keydown', function(event) {
-      const key = event.key.toLowerCase();
-      const pad = document.querySelector(`.drum-pad[data-key="${key}"]`);
-      if (pad) {
-        pad.click();
-      }
-    });
-
-    function toggleSettingsPopup() {
-      document.getElementById('settingsPopup').classList.toggle('show');
-    }
-
-    function toggleMetronomePopup() {
-      document.getElementById('metronomePopup').classList.toggle('show');
+    
+    function openFile() {
+      alert('Open file button clicked');
     }
   </script>
 
