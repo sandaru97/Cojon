@@ -18,30 +18,35 @@
       align-items: center;
     }
     .top-bar {
-      position: fixed;
-      bottom: 10px;
-      left: 50%;
-      transform: translateX(-50%);
-      z-index: 999;
-      display: flex;
-      align-items: center;
-      gap: 20px;
-      background-color: rgba(194, 164, 118, 0.8);
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
-    }
-    .top-bar button {
-      background-color: #c2a476;
-      border-radius: 10px;
-      color: #483c32;
-      cursor: pointer;
-      font-size: 2rem;
-      padding: 10px;
-      margin: 0;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s, color 0.3s, transform 0.2s;
-    }
+  position: fixed;
+  bottom: 10px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 999;
+  display: flex;
+  align-items: center;
+  justify-content: center; /* This centers the buttons */
+  gap: 10px;
+  background-color: rgba(194, 164, 118, 0.8);
+  padding: 10px;
+  border-radius: 10px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1), 0 6px 20px rgba(0, 0, 0, 0.1);
+  width: 80%; /* Adjusts the width to fit the viewport */
+  max-width: 370px; /* Optionally, limit the maximum width */
+}
+.top-bar button {
+  flex: 1; /* This ensures all buttons occupy equal width */
+  background-color: #c2a476;
+  border-radius: 10px;
+  color: #483c32;
+  cursor: pointer;
+  font-size: 2rem;
+  padding: 10px;
+  margin: 0;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  transition: background-color 0.3s, color 0.3s, transform 0.2s;
+  text-align: center;
+}
     .top-bar button:hover {
       background-color: #ffd700;
       color: #483c32;
@@ -90,23 +95,28 @@
       transform: translateY(-2px);
       box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
     }
+    .drum-pad:active {
+  transform: scale(0.9);
+  box-shadow: 0 0 10px #ffdf00;
+}
     .big-kick {
       grid-column: span 2;
     }
     .settings-popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      background-color: #c2a476;
-      padding: 20px;
-      border-radius: 10px;
-      box-shadow: 0 0 10px rgba(0, 0, 0, 0.3);
-      z-index: 9999;
-      width: 90%;
-      max-width: 360px;
-      display: none;
-    }
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: #c2a476;
+  padding: 20px;
+  border-radius: 10px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.7); /* Heavier shadow */
+  z-index: 9999;
+  width: 90%;
+  max-width: 360px;
+  display: none;
+}
+
     .settings-popup.show {
       display: block;
     }
@@ -193,27 +203,36 @@
       transform: translateY(1px);
     }
     .section-title {
-      font-size: 1.5rem;
-      font-weight: bold;
-      color: #483c32;
-      margin-bottom: 10px;
-    }
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #483c32;
+  margin-bottom: 10px; /* Add margin here for spacing */
+}
+.bpm-controls {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Adds space between the slider and the button */
+}
+
+.bpm-controls input {
+  flex-grow: 1; /* Ensures the slider takes up available space */
+}
   </style>
 </head>
 <body>
-
   <div class="drum-pad-container">
     <div class="drum-pad big-kick" data-key="1" onclick="handlePadClick(event); playSound('kick.wav')"><i class="fas fa-drum"></i> Kick (1, 2)</div>
     <div class="drum-pad" data-key="q" onclick="handlePadClick(event); playSound('snare.wav')"><i class="fas fa-hand-paper"></i> Snare Left (q)</div>
     <div class="drum-pad" data-key="w" onclick="handlePadClick(event); playSound('snare0.wav')"><i class="fas fa-hand-paper"></i> Snare Right (w)</div>
     <div class="drum-pad" data-key="a" onclick="handlePadClick(event); playSound('accent.wav')"><i class="fas fa-hand-rock"></i> Accent Right (a)</div>
     <div class="drum-pad" data-key="s" onclick="handlePadClick(event); playSound('accent0.wav')"><i class="fas fa-hand-rock"></i> Accent Left (s)</div>
-  </div>
+    <div class="drum-pad" data-key="d" onclick="handlePadClick(event); playSound('brush-right.wav')"><i class="fas fa-paint-brush"></i> Brush Right (d)</div>
+    <div class="drum-pad" data-key="f" onclick="handlePadClick(event); playSound('brush-left.wav')"><i class="fas fa-paint-brush"></i> Brush Left (f)</div>
+</div>
 
   <div class="top-bar">
     <button class="record-button" onclick="startRecording()"><i class="fas fa-record-vinyl"></i></button>
     <button class="stop-button" onclick="stopRecording()"><i class="fas fa-stop"></i></button>
-    <button class="open-file-button" onclick="openFile()"><i class="fas fa-folder-open"></i></button>
     <button class="settings-button" onclick="toggleSettingsPopup()"><i class="fas fa-cog"></i></button>
   </div>
 
@@ -232,12 +251,15 @@
       <input type="range" id="reverbSlider" class="slider" min="0" max="100" value="30">
     </div>
 
-    <div class="slider-container">
-      <div class="section-title">Metronome</div>
-      <input type="range" id="bpmSlider" class="slider" min="40" max="200" value="120">
-      <button class="metronome-toggle-button" onclick="toggleMetronome()">Off</button>
+    <div class="slider-container metronome-container">
+      <div class="section-title">
+        Metronome (<span id="bpmValue">120</span> BPM)
+      </div>
+      <div class="bpm-controls">
+        <input type="range" id="bpmSlider" class="slider" min="40" max="200" value="120" oninput="updateBpmValue()">
+        <button class="metronome-toggle-button" onclick="toggleMetronome()">Off</button>
+      </div>
     </div>
-  </div>
 
   <script>
     let metronomeEnabled = false;
@@ -285,6 +307,13 @@
     function openFile() {
       alert('Open file button clicked');
     }
+
+    function updateBpmValue() {
+  const bpmSlider = document.getElementById('bpmSlider');
+  const bpmValue = document.getElementById('bpmValue');
+  bpmValue.textContent = bpmSlider.value;
+}
+
   </script>
 
 </body>
